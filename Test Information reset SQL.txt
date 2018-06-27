@@ -1,0 +1,26 @@
+--Kaiba Redux Database creation SQL
+
+--Assumes the database is called `kaibaredux`
+
+
+
+--Deletes current data*/
+
+DELETE FROM t_priceline
+WHERE pricelineID != -5;
+
+DELETE FROM t_item
+WHERE itemID != -5;
+
+DELETE FROM t_section
+WHERE sectionID != -5;
+
+DELETE FROM t_menu
+WHERE menuID != -5;
+
+
+
+--Restores test data*/
+
+INSERT INTO t_menu (menuName, menuDesciption, menuPosition) VALUES
+('thisMenuName', 'thisMenuDesciption', 10000)

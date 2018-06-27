@@ -12668,11 +12668,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\kart5\\source\\repos\\KaibaReduxAPI\\KaibaReduxAPI\\KaibaReduxAPI.csproj",
+      "projectUniqueName": "C:\\Users\\kart5\\Documents\\GitHub\\KaibaReduxAPI\\KaibaReduxAPI\\KaibaReduxAPI.csproj",
       "projectName": "KaibaReduxAPI",
-      "projectPath": "C:\\Users\\kart5\\source\\repos\\KaibaReduxAPI\\KaibaReduxAPI\\KaibaReduxAPI.csproj",
+      "projectPath": "C:\\Users\\kart5\\Documents\\GitHub\\KaibaReduxAPI\\KaibaReduxAPI\\KaibaReduxAPI.csproj",
       "packagesPath": "C:\\Users\\kart5\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\kart5\\source\\repos\\KaibaReduxAPI\\KaibaReduxAPI\\obj\\",
+      "outputPath": "C:\\Users\\kart5\\Documents\\GitHub\\KaibaReduxAPI\\KaibaReduxAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
