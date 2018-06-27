@@ -1,0 +1,61 @@
+--Kaiba Redux Database creation SQL
+
+--Assumes a database called `kaibaredux` has already been created
+
+CREATE TABLE `kaibaredux`.`t_menu` (
+  `menuID` INT NOT NULL AUTO_INCREMENT,
+  `menuName` VARCHAR(100) NOT NULL,
+  `menuDesciption` VARCHAR(500) NULL,
+  `menuPosition` DOUBLE UNSIGNED NOT NULL,
+  PRIMARY KEY (`menuID`));
+
+CREATE TABLE `kaibaredux`.`t_section` (
+  `sectionID` INT NOT NULL AUTO_INCREMENT,
+  `sectionName` VARCHAR(100) NOT NULL,
+  `sectionDescription` VARCHAR(500) NULL,
+  `sectionPosition` DOUBLE UNSIGNED NOT NULL,
+  `sectionPicturePath` VARCHAR(500) NULL,
+  `menuID` INT NOT NULL,
+  PRIMARY KEY (`sectionID`),
+  INDEX `menuID_idx` (`menuID` ASC),
+  CONSTRAINT `menuID`
+    FOREIGN KEY (`menuID`)
+    REFERENCES `kaibaredux`.`t_menu` (`menuID`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT);
+
+CREATE TABLE `kaibaredux`.`t_item` (
+  `itemID` INT NOT NULL AUTO_INCREMENT,
+  `itemName` VARCHAR(100) NOT NULL,
+  `itemDescription` VARCHAR(500) NULL,
+  `itemPosition` DOUBLE UNSIGNED NOT NULL,
+  `itemPicturePath` VARCHAR(500) NULL,
+  `sectionID` INT NULL,
+  PRIMARY KEY (`itemID`),
+  INDEX `sectionID_idx` (`sectionID` ASC),
+  CONSTRAINT `sectionID`
+    FOREIGN KEY (`sectionID`)
+    REFERENCES `kaibaredux`.`t_section` (`sectionID`)
+    ON DELETE SET NULL
+    ON UPDATE RESTRICT);
+
+CREATE TABLE `kaibaredux`.`t_priceline` (
+  `pricelineID` INT NOT NULL AUTO_INCREMENT,
+  `pricelineDescription` VARCHAR(100) NULL,
+  `pricelinePrice` DOUBLE UNSIGNED NOT NULL,
+  `pricelinePosition` DOUBLE UNSIGNED NOT NULL,
+  `itemID` INT NOT NULL,
+  PRIMARY KEY (`pricelineID`),
+  INDEX `itemID_idx` (`itemID` ASC),
+  CONSTRAINT `itemID`
+    FOREIGN KEY (`itemID`)
+    REFERENCES `kaibaredux`.`t_item` (`itemID`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT);
+
+
+
+
+
+
+
