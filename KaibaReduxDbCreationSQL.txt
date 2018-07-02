@@ -1,57 +1,99 @@
 --Kaiba Redux Database creation SQL
 
---Assumes a database called `kaibaredux` has already been created
 
-CREATE TABLE `kaibaredux`.`t_menu` (
-  `menuID` INT NOT NULL AUTO_INCREMENT,
-  `menuName` VARCHAR(100) NOT NULL,
-  `menuDescription` VARCHAR(500) NULL,
-  `menuPosition` DOUBLE UNSIGNED NOT NULL,
-  PRIMARY KEY (`menuID`));
+--Create a new database called kaibaredux.  
+CREATE DATABASE kaibaredux;  
+GO
 
-CREATE TABLE `kaibaredux`.`t_section` (
-  `sectionID` INT NOT NULL AUTO_INCREMENT,
-  `sectionName` VARCHAR(100) NOT NULL,
-  `sectionDescription` VARCHAR(500) NULL,
-  `sectionPosition` DOUBLE UNSIGNED NOT NULL,
-  `sectionPicturePath` VARCHAR(500) NULL,
-  `menuID` INT NOT NULL,
-  PRIMARY KEY (`sectionID`),
-  INDEX `menuID_idx` (`menuID` ASC),
-  CONSTRAINT `menuID`
-    FOREIGN KEY (`menuID`)
-    REFERENCES `kaibaredux`.`t_menu` (`menuID`)
-    ON DELETE CASCADE
-    ON UPDATE RESTRICT);
+USE kaibaredux;
+GO
 
-CREATE TABLE `kaibaredux`.`t_item` (
-  `itemID` INT NOT NULL AUTO_INCREMENT,
-  `itemName` VARCHAR(100) NOT NULL,
-  `itemDescription` VARCHAR(500) NULL,
-  `itemPosition` DOUBLE UNSIGNED NOT NULL,
-  `itemPicturePath` VARCHAR(500) NULL,
-  `sectionID` INT NULL,
-  PRIMARY KEY (`itemID`),
-  INDEX `sectionID_idx` (`sectionID` ASC),
-  CONSTRAINT `sectionID`
-    FOREIGN KEY (`sectionID`)
-    REFERENCES `kaibaredux`.`t_section` (`sectionID`)
-    ON DELETE SET NULL
-    ON UPDATE RESTRICT);
 
-CREATE TABLE `kaibaredux`.`t_priceline` (
-  `pricelineID` INT NOT NULL AUTO_INCREMENT,
-  `pricelineDescription` VARCHAR(100) NULL,
-  `pricelinePrice` DOUBLE UNSIGNED NOT NULL,
-  `pricelinePosition` DOUBLE UNSIGNED NOT NULL,
-  `itemID` INT NOT NULL,
-  PRIMARY KEY (`pricelineID`),
-  INDEX `itemID_idx` (`itemID` ASC),
-  CONSTRAINT `itemID`
-    FOREIGN KEY (`itemID`)
-    REFERENCES `kaibaredux`.`t_item` (`itemID`)
-    ON DELETE CASCADE
-    ON UPDATE RESTRICT);
+CREATE TABLE dbo.t_menu  
+   (menuID int IDENTITY(1,1) PRIMARY KEY NOT NULL ,  
+    menuName varchar(100) NOT NULL,  
+    menuDescription varchar(500) NOT NULL, 
+    menuPosition float NOT NULL
+	);
+
+CREATE TABLE dbo.t_section 
+   (sectionID int IDENTITY(1,1) PRIMARY KEY NOT NULL ,  
+    sectionName varchar(100) NOT NULL,  
+    sectionDescription varchar(500) NULL, 
+    sectionPosition float NOT NULL,
+    sectionPicturePath varchar(500) NULL, 
+    menuID int FOREIGN KEY REFERENCES t_menu(menuID)
+	);
+
+CREATE TABLE dbo.t_item 
+   (itemID int IDENTITY(1,1) PRIMARY KEY NOT NULL ,  
+    itemName varchar(100) NOT NULL,  
+    itemDescription varchar(500) NULL, 
+    itemPosition float NOT NULL,
+    itemPicturePath varchar(500) NULL, 
+    sectionID int FOREIGN KEY REFERENCES t_section(sectionID)
+	);
+
+CREATE TABLE dbo.t_priceline 
+   (pricelineID int IDENTITY(1,1) PRIMARY KEY NOT NULL,  
+    pricelineDescription varchar(100) NULL,  
+    pricelinePrice money NOT NULL,
+    pricelinePosition float NOT NULL, 
+    itemID int FOREIGN KEY REFERENCES t_item(itemID)
+	);
+	
+GO
+
+--insert data
+
+INSERT INTO t_menu (menuName, menuDescription, menuPosition) VALUES
+('Menu_1', 'Menu_1 Description', 10000),
+('Menu_2', 'Menu_2 Description', 20000);
+
+INSERT INTO t_section (sectionName, sectionDescription, sectionPosition, sectionPicturePath, menuID) VALUES
+('Apps', 'To start you off', 10000, 'PicPath', 1),
+('Deserts', 'To finish you off', 20000, 'PicPath', 1),
+
+('Entries', 'To fill you up', 10000, 'PicPath', 2),
+('Booze', 'To mellow you out', 20000, 'PicPath', 2);
+
+
+
+INSERT INTO t_item (itemName, itemDescription, itemPosition, itemPicturePath, sectionID) VALUES
+('Onion Rings', 'Fried onions, what could be better?', 10000, 'PicPath', 1),
+('Wings', 'Careful they`re hot', 20000, 'PicPath', 1),
+
+('Cake', 'Let yourself eat cake', 10000, 'PicPath', 2),
+('Ice Cream', 'Your choices are oreo or cookies and cream', 20000, 'PicPath', 2),
+
+('Burger', 'The classic American heart-throb (attack)', 10000, 'PicPath', 3),
+('Pizza', 'Bastardized Itialian classic', 20000, 'PicPath', 3),
+
+('Beer', 'What kind? It just says Beer', 10000, 'PicPath', 4),
+('Vodka', 'It`s actually Draino', 20000, 'PicPath',4);
+
+
+
+INSERT INTO t_priceline (pricelineDescription, pricelinePrice, pricelinePosition, itemID) VALUES
+('4 Rings', 5, 10000, 1),
+('10 Rings', 10, 20000, 1),
+('4 Wings', 8, 10000, 2),
+('10 Rings', 15, 20000, 2),
+
+('', 50, 10000, 3),
+('', 50, 10000, 4),
+
+('', 50, 10000, 5),
+('', 50, 10000, 6),
+
+('Beer', 50, 10000, 7),
+('Vodka', 50, 10000, 8);
+
+GO
+
+
+
+
 
 
 
