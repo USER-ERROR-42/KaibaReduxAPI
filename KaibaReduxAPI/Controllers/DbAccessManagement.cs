@@ -5,16 +5,19 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 
+
 namespace KaibaReduxAPI.Controllers
 {
+
     public class DbAccessManagement
     {
+        static string CONNECTION_STRING = "Data Source=DESKTOP-PPEIFCP;Initial Catalog=kaibaredux;Trusted_Connection=yes;";
+
+
         public static bool DBTest()
         {
-            string connetionString = null;
             SqlConnection cnn;
-            connetionString = "Data Source=DESKTOP-PPEIFCP;Initial Catalog=kaibaredux;Trusted_Connection=yes;";
-            cnn = new SqlConnection(connetionString);
+            cnn = new SqlConnection(CONNECTION_STRING);
             try
             {
                 cnn.Open();
@@ -31,10 +34,8 @@ namespace KaibaReduxAPI.Controllers
 
         public static string DBTest2()
         {
-            string connetionString = null;
             SqlConnection cnn;
-            connetionString = "Data Source=DESKTOP-PPEIFCP;Initial Catalog=kaibaredux;Trusted_Connection=yes;";
-            cnn = new SqlConnection(connetionString);
+            cnn = new SqlConnection(CONNECTION_STRING);
             try
             {
                 string result = " ";
@@ -77,10 +78,8 @@ namespace KaibaReduxAPI.Controllers
 
         public static string DBTest3()
         {
-            string connetionString = null;
             SqlConnection cnn;
-            connetionString = "Data Source=DESKTOP-PPEIFCP;Initial Catalog=kaibaredux;Trusted_Connection=yes;";
-            cnn = new SqlConnection(connetionString);
+            cnn = new SqlConnection(CONNECTION_STRING);
             try
             {
                 string result = " ";
