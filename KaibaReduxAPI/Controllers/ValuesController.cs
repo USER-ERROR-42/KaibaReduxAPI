@@ -13,7 +13,21 @@ namespace KaibaReduxAPI.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            return new string[] { DbAccessManagement.DBTest2() };
+
+
+            /*
+            if(DbAccessManagement.DBTest())
+            {
+                return new string[] {"connected"};
+            }
+            else
+            {
+                return new string[] { "failed" };
+            }
+            */
+
+            //return new string[] { "value1", "value2" };
         }
 
         // GET api/values/5

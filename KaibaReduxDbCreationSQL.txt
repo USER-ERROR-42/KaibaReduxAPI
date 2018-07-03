@@ -92,7 +92,8 @@ INSERT INTO t_priceline (pricelineDescription, pricelinePrice, pricelinePosition
 GO
 
 
-
+CREATE USER appUser WITH PASSWORD = '&$%&*(FHjhsf5164';
+GO
 
 
 
