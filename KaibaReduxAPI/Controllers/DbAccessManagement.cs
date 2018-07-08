@@ -5,12 +5,10 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 
-
 namespace KaibaReduxAPI.Controllers
 {
-
     public class DbAccessManagement
-        // This class contains all the database access methods
+    // This class contains all the database access methods
     {
         // This is the connection string that points to the database. It is a constant so we add the readonly keyword
         // To properly run the connection string needs the server name of your SQL server instance.
@@ -23,7 +21,7 @@ namespace KaibaReduxAPI.Controllers
 
 
         public string[] getMenus()
-            // returns a string array containing the menu names
+        // returns a string array containing the menu names
         {
             // Declare the string array that we will eventually return
             // This ensures that it is available at the highest scope
@@ -76,10 +74,10 @@ namespace KaibaReduxAPI.Controllers
                 // Write the error to the console
                 // The "DB-DEBUG:" is just there to make finding that message in the console easier
                 System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
-                
+
                 // If there was an error we still need to return something
                 // set the results variable equal to an error message
-                results = new string[] {"Database Error"};
+                results = new string[] { "Database Error" };
             }
             finally
             {
@@ -94,14 +92,14 @@ namespace KaibaReduxAPI.Controllers
         }
 
         public void GetItemsOnMenu(string id)
-            // takes a menuID and returns a menu object containing all the information about that menu
+        // takes a menuID and returns a menu object containing all the information about that menu
         {
             // TODO finish
         }
 
 
         private void OpenDb()
-            // Opens the database connection. This must be done before every db operation.
+        // Opens the database connection. This must be done before every db operation.
         {
             if (connection == null)
             {
@@ -111,8 +109,8 @@ namespace KaibaReduxAPI.Controllers
         }
 
         private void CloseDb()
-            // Closes the database connection. This should be done after every database operation, whether it suceeded or not
-            // This is a general good programming practice, as it frees up system resources (makes sure you're not opening a new connection every time, but not closing them)
+        // Closes the database connection. This should be done after every database operation, whether it suceeded or not
+        // This is a general good programming practice, as it frees up system resources (makes sure you're not opening a new connection every time, but not closing them)
         {
             // check if the connection is already null
             // If the connection was null and we tried to close it, we would get a NullPointerException
@@ -128,7 +126,7 @@ namespace KaibaReduxAPI.Controllers
 
 
         public static bool DBTest()
-            //a function to test whether the connection can be opened and closed without an error
+        //a function to test whether the connection can be opened and closed without an error
         {
             // Declare a connection object
             SqlConnection cnn;
@@ -155,7 +153,7 @@ namespace KaibaReduxAPI.Controllers
         }
 
         public static string DBTest2()
-            // Try outputting information from the db to the page
+        // Try outputting information from the db to the page
         {
             SqlConnection cnn;
             cnn = new SqlConnection(CONNECTION_STRING);
