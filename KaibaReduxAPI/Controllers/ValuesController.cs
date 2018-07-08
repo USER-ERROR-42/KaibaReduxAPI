@@ -7,13 +7,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace KaibaReduxAPI.Controllers
 {
     [Route("api/[controller]")]
-    public class ValuesController : Controller
+    //[ApiController]
+    public class ValuesController : ControllerBase
     {
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { DbAccessManagement.DBTest2() };
+            DbAccessManagement DAM = new DbAccessManagement();
+            return DAM.getMenus();
+            //return new string[] { DbAccessManagement.DBTest2() };
 
 
             /*
@@ -34,7 +37,9 @@ namespace KaibaReduxAPI.Controllers
         [HttpGet("{id}")]
         public string Get(int id)
         {
-            return "value";
+            //return "value";
+            //return NotFound();
+            return "hello";
         }
 
         // POST api/values

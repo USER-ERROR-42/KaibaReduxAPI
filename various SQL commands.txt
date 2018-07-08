@@ -1,0 +1,20 @@
+-- Various SQL Statements
+
+
+-- Select all combined rows
+
+SELECT * FROM t_menu m, t_section s, t_item i, t_priceline p
+WHERE m.menuID = s.menuID 
+  AND s.sectionID = i.sectionID
+  AND i.itemID = p.itemID
+
+ORDER BY m.menuPosition, s.sectionPosition, i.itemPosition, p.pricelinePosition
+
+
+
+
+
+
+
+
+	
