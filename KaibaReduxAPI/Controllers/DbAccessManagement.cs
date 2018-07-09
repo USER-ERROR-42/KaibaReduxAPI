@@ -92,8 +92,8 @@ namespace KaibaReduxAPI.Controllers
             return results;
         }
 
-        public void GetSectionInMenu(string id)
-        // takes a menuID and returns a menu object containing all the information about that menu
+        public void GetSectionsInMenu(string id)
+        // takes a menuID and returns a list containing all the sections in that menu
         {
             // TODO finish
             // have this call getItemsInSection(id) for each section
