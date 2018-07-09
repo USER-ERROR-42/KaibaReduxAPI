@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
+using KaibaReduxAPI.Models;
 
 namespace KaibaReduxAPI.Controllers
 {
@@ -91,10 +92,12 @@ namespace KaibaReduxAPI.Controllers
             return results;
         }
 
-        public void GetItemsOnMenu(string id)
+        public void GetSectionInMenu(string id)
         // takes a menuID and returns a menu object containing all the information about that menu
         {
             // TODO finish
+            // have this call getItemsInSection(id) for each section
+            // which then calls getPricelinesForItem(id) for each item
         }
 
 
