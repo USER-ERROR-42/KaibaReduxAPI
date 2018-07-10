@@ -48,8 +48,8 @@ GO
 --insert data
 
 INSERT INTO t_menu (menuName, menuDescription, menuPosition) VALUES
-('Menu_1', 'Menu_1 Description', 10000),
-('Menu_2', 'Menu_2 Description', 20000);
+('Lunch Menu', 'Served till 3 PM', 10000),
+('Dinner Menu', 'Basically the same as the lunch menu, but with higher prices', 20000);
 
 INSERT INTO t_section (sectionName, sectionDescription, sectionPosition, sectionPicturePath, menuID) VALUES
 ('Apps', 'To start you off', 10000, 'PicPath', 1),

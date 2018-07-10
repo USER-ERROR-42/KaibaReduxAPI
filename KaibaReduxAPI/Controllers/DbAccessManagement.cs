@@ -10,6 +10,8 @@ namespace KaibaReduxAPI.Controllers
 {
     public class DbAccessManagement
     // This class contains all the database access methods
+    // Notice how the all methods of a certain type, for example the create methods, are very similar 
+    // In fact they differ only in the SQL command string and the object taken or returned
     {
         // This is the connection string that points to the database. It is a constant so we add the readonly keyword
         // To properly run the connection string needs the server name of your SQL server instance.
@@ -21,16 +23,12 @@ namespace KaibaReduxAPI.Controllers
 
 
 
-        public string[] getMenus()
-        // returns a string array containing the menu names
+        public List<Menu> getMenus()
+        // returns a list containing menu objects, which contain the information about each menu
         {
-            // Declare the string array that we will eventually return
-            // This ensures that it is available at the highest scope
-            string[] results = null;
-
             // Declare a string list to hold the data we get from the DB
             // Note how you must declare the list's data type: <string>
-            List<string> menuList = new List<string>();
+            List<Menu> results = new List<Menu>();
 
             // Use a try catch here because it's very likely that the connection could fail and throw an error
             try
@@ -39,8 +37,9 @@ namespace KaibaReduxAPI.Controllers
                 OpenDb();
 
                 // Define the SQL command statement
-                // Web simply want to retrieve all the menus
-                string commandString = "SELECT * FROM t_menu";
+                // Web simply want to retrieve all the menus ordered by the position field
+                string commandString = "SELECT * FROM t_menu " +
+                                        "ORDER BY menuPosition";
 
                 // Create the SQL command object, give it the command string and the connection object
                 SqlCommand command = new SqlCommand(commandString, connection);
@@ -57,17 +56,20 @@ namespace KaibaReduxAPI.Controllers
                 // By placing the SqlDataReader.Read() call inside a while, we can keep reading the row data until there are no further rows
                 while (dataReader.Read())
                 {
-                    // We only want the menu name, so we get that from each row
-                    // The ToString() method ensures that we recieve a string 
-                    String menuName = dataReader["menuName"].ToString();
+                    // New Menu Object to store data
+                    Menu menu = new Menu();
 
-                    // add that string to the list
-                    menuList.Add(menuName);
+                    // Get each column from each row
+                    // The ToString() method ensures that we recieve a string 
+                    menu.Id = (int) dataReader["menuID"];
+                    menu.Name = dataReader["menuName"].ToString();
+                    menu.Description = dataReader["menuDescription"].ToString();
+                    menu.Position = (double) dataReader["menuPosition"];
+
+                    // add that menu to the list
+                    results.Add(menu);
                 }
 
-                // Now menuList contains a list of the menu names, but we need to return an array
-                // use List.ToArray() to convert the current list into an array containing the same elements
-                results = menuList.ToArray();
             }
             catch (Exception ex)
             // If there is an Exception (aka an error) then the catch block is executed
@@ -77,8 +79,8 @@ namespace KaibaReduxAPI.Controllers
                 System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
 
                 // If there was an error we still need to return something
-                // set the results variable equal to an error message
-                results = new string[] { "Database Error" };
+                // return an empty list
+                results = new List<Menu>();
             }
             finally
             {
@@ -92,12 +94,973 @@ namespace KaibaReduxAPI.Controllers
             return results;
         }
 
-        public void GetSectionsInMenu(string id)
-        // takes a menuID and returns a list containing all the sections in that menu
+        public Menu getMenu(int id)
+        // takes a menu id and returns a corresponding menu object that contains it's sections, which contain items, which contain pricelines
+        // if that menu is not found, returns null
         {
-            // TODO finish
-            // have this call getItemsInSection(id) for each section
-            // which then calls getPricelinesForItem(id) for each item
+            // Declare return variable
+            Menu result = new Menu();
+
+            // Use a try catch here because it's very likely that the connection could fail and throw an error
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // Define the SQL command statement
+                // Web simply want to retrieve a specific menu
+                string commandString = "SELECT * FROM t_menu " +
+                                        "WHERE menuID = " + id + " " +
+                                        "ORDER BY menuPosition";
+
+                // Create the SQL command object, give it the command string and the connection object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // Execute the command, since this is a select use SqlCommand.ExecuteReader()
+                // It will return a SQLDataReader object, which we assign to the variable "dataReader"
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // Since we are retriving a single row, we can use an if statement
+                if (dataReader.Read())
+                {
+                    // There was a row returned, so we can get each column data from each row
+                    result.Id = (int)dataReader["menuID"];
+                    result.Name = dataReader["menuName"].ToString();
+                    result.Description = dataReader["menuDescription"].ToString();
+                    result.Position = (double)dataReader["menuPosition"];
+
+                    // Close the DataReader
+                    dataReader.Close();
+
+                    // Now we need to get the sections in this menu
+                    result.SectionList = GetSectionsInMenu(result.Id);
+
+                }
+                else
+                {
+                    // no row was returned, so the menu was not found
+                    // in that case we return null, to signify that nothing was found
+                    result = null;
+                }
+
+            }
+            catch (Exception ex)
+            // If there is an Exception (aka an error) then the catch block is executed
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+
+                // If there was an error we still need to return something
+                // return an empty menu, with the name Database ERROR
+                result = new Menu();
+                result.Name = "Database ERROR";
+            }
+            finally
+            {
+                // whether there was an error or not, we need to close the connection
+                // that's what the finally block is for
+                CloseDb();
+            }
+
+            // lastly return the result
+            // it's good practice to always have only a single return statement at the end of the method
+            return result;
+        }
+
+        public List<Section> GetSectionsInMenu(int id)
+        // takes a menuID and returns a list containing all the sections in that menu
+        // each section will in turn contain it's corresponding items
+        // in order to get this list of it's items, it calls getItemsInSection()
+        {
+            // the list to hold results from the database and eventually return
+            List<Section> results = new List<Section>();
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "SELECT * FROM t_section " +
+                                        "WHERE menuID = " + id + " " +
+                                        "ORDER BY sectionPosition";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command and assign results to a dataReader
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // while loop to get all row data
+                while (dataReader.Read())
+                {
+                    // new section object to hold data
+                    Section sect = new Section();
+
+                    // get data from the dataReader
+                    sect.Id = (int) dataReader["sectionID"];
+                    sect.Name = dataReader["sectionName"].ToString();
+                    sect.Description = dataReader["sectionDescription"].ToString();
+                    sect.Position = (double) dataReader["sectionPosition"];
+                    sect.PicturePath = dataReader["sectionPicturePath"].ToString();
+                    sect.MenuID = (int)dataReader["menuID"];
+
+                    // put object in list
+                    results.Add(sect);
+                }
+                // close the DataReader
+                dataReader.Close();
+
+                // use a foreach loop, to call getItemsInSection for each object
+                foreach (Section s in results)
+                {
+                    s.ItemList = GetItemsInSection(s.Id);
+                }
+
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set results to be an empty list
+                results = new List<Section>();
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the results
+            return results;
+
+        }
+
+        private List<Item> GetItemsInSection(int id)
+        // takes a sectionID and returns a list of all the items in that section
+        // each item will contain it's own price lines
+        {
+            // the list to hold results from the database and eventually return
+            List<Item> results = new List<Item>();
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "SELECT * FROM t_item " +
+                                        "WHERE sectionID = " + id + " " +
+                                        "ORDER BY itemPosition";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command and assign results to a dataReader
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // while loop to get all row data
+                while (dataReader.Read())
+                {
+                    // new Item object to hold data
+                    Item item = new Item();
+
+                    // get data from dataReader
+                    item.Id = (int)dataReader["itemID"];
+                    item.Name = dataReader["itemName"].ToString();
+                    item.Description = dataReader["itemDescription"].ToString();
+                    item.Position = (double)dataReader["itemPosition"];
+                    item.PicturePath = dataReader["itemPicturePath"].ToString();
+                    item.SectionID = (int)dataReader["sectionID"];
+
+                    // put Item in list
+                    results.Add(item);
+                }
+                // close the DataReader
+                dataReader.Close();
+
+                // use a foreach to call getPricelinesForItem() on each item
+                foreach (Item i in results)
+                {
+                    i.PriceLineList = getPricelinesForItem(i.Id);
+                }
+                
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // assign empty list to results
+                results = new List<Item>();
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the results
+            return results;
+        }
+
+        private List<Priceline> getPricelinesForItem(int id)
+        // takes an item ID and returns a list of all pricelines associated with that item
+        {
+            // the list to hold results from the database and eventually return
+            List<Priceline> results = new List<Priceline>();
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "SELECT * FROM t_priceLine " +
+                                        "WHERE itemID = " + id + " " +
+                                        "ORDER BY pricelinePosition";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command and assign results to a dataReader
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // while loop to get all row data
+                while (dataReader.Read())
+                {
+                    // new Priceline object to hold data
+                    Priceline price = new Priceline();
+
+                    // get data from dataReader
+                    price.Id = (int)dataReader["pricelineID"];
+                    price.Description = dataReader["pricelineDescription"].ToString();
+                    price.Price = (decimal)dataReader["pricelinePrice"];
+                    price.Position = (double)dataReader["pricelinePosition"];
+                    price.ItemID = (int)dataReader["itemID"];
+
+                    // put Priceline in list
+                    results.Add(price);
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // assign empty list to results
+                results = new List<Priceline>();
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the results
+            return results;
+        }
+
+        public bool InsertMenu (Menu menu)
+            // takes a menu object and creates a coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                // Note how this uses dynamic SQL and drops values directly into the command string
+                // However, this leaves the application vulnerable to SQL injection
+                // using prepared statements (aka parameterized) would be a better solution
+                string commandString = "INSERT INTO t_menu (menuName, menuDescription, menuPosition) " +
+                                        "VALUES ('" + menu.Name + "', '" + menu.Description + "', " + menu.Position + ")";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool InsertSection(Section section)
+        // takes a Section object and creates a coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                // Note how this uses dynamic SQL and drops values directly into the command string
+                // However, this leaves the application vulnerable to SQL injection
+                // using prepared statements (aka parameterized) would be a better solution
+                string commandString = "INSERT INTO t_section (sectionName, sectionDescription, sectionPosition, sectionPicturePath, menuID) " +
+                                        "VALUES ('" + section.Name + "', '" + section.Description + "', " + section.Position + ", '" + section.PicturePath + "', " + section.MenuID + ")";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool InsertItem(Item item)
+        // takes a Item object and creates a coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                // Note how this uses dynamic SQL and drops values directly into the command string
+                // However, this leaves the application vulnerable to SQL injection
+                // using prepared statements (aka parameterized) would be a better solution
+                string commandString = "INSERT INTO t_item (itemName, itemDescription, itemPosition, itemPicturePath, sectionID) " +
+                                        "VALUES ('" + item.Name + "', '" + item.Description + "', " + item.Position + ", '" + item.PicturePath + "', " + item.SectionID + ")";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool InsertPriceline(Priceline price)
+        // takes a Priceline object and creates a coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                // Note how this uses dynamic SQL and drops values directly into the command string
+                // However, this leaves the application vulnerable to SQL injection
+                // using prepared statements (aka parameterized) would be a better solution
+                string commandString = "INSERT INTO t_priceline (pricelineDescription, pricelinePrice, pricelinePosition, itemID) " +
+                                        "VALUES ('" + price.Description + "', " + price.Price + ", " + price.Position + ", " + price.ItemID + ")";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool UpdateMenu(Menu menu)
+        // takes a menu object and updates the coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "UPDATE t_menu SET " +
+                                        "menuName = '" + menu.Name + "', " +
+                                        "menuDescription = '" + menu.Description + "', " +
+                                        "menuPosition = " + menu.Position + " " +
+                                        "WHERE menuID = " + menu.Id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() 
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool UpdateSection(Section section)
+        // takes a Section object and updates the coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "UPDATE t_section SET " +
+                                        "sectionName = '" + section.Name + "', " +
+                                        "sectionDescription = '" + section.Description + "', " +
+                                        "sectionPosition = " + section.Position + ", " +
+                                        "sectionPicturePath = '" + section.PicturePath + "', " +
+                                        "menuID = " + section.MenuID + " " +
+                                        "WHERE sectionID = " + section.Id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() 
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool UpdateItem(Item item)
+        // takes an Item object and updates the coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "UPDATE t_item SET " +
+                                        "itemName = '" + item.Name + "', " +
+                                        "itemDescription = '" + item.Description + "', " +
+                                        "itemPosition = " + item.Position + ", " +
+                                        "itemPicturePath = '" + item.PicturePath + "', " +
+                                        "sectionID = " + item.SectionID + " " +
+                                        "WHERE itemID = " + item.Id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() 
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool UpdatePriceline(Priceline price)
+        // takes an Priceline object and updates the coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "UPDATE t_priceline SET " +
+                                        "pricelineDescription = '" + price.Description + "', " +
+                                        "pricelinePrice = " + price.Price + ", " +
+                                        "pricelinePosition = " + price.Position + ", " +
+                                        "itemID = " + price.ItemID + " " +
+                                        "WHERE pricelineID = " + price.Id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() 
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool DeleteMenu(int id)
+        // takes a menu id and deletes the coresponding database entry for it
+        // will not work if the menu still has sections in it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                // if this menu has any sections in it, this will fail
+                string commandString = "DELETE FROM t_menu " +
+                                        "WHERE menuID = " + id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool DeleteSection(int id)
+        // takes a section id and deletes the coresponding database entry for it
+        // will not work if the section still has items in it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                // if this section has any items in it, this will fail
+                string commandString = "DELETE FROM t_section " +
+                                        "WHERE sectionID = " + id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool DeleteItem(int id)
+        // takes an Item id and deletes the coresponding database entry for it
+        // will not work if the item still has pricelines assigned to it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                // if this item has any pricelines in it, this will fail
+                string commandString = "DELETE FROM t_item " +
+                                        "WHERE itemID = " + id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public bool DeletePriceline(int id)
+        // takes a priceline id and deletes the coresponding database entry for it
+        {
+            // this boolean will represent whether the operation was successful or not
+            bool result = false;
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "DELETE FROM t_priceline " +
+                                        "WHERE pricelineID = " + id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command using command.executeNonQuery() because this will not return a DataReader
+                // command.executeNonQuery() returns the number of rows affected, so assign that to a variable
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // if one row was affected, then we were successful
+                if (rowsAffected == 1)
+                {
+                    result = true;
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // set result to false
+                result = false;
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the result
+            return result;
+        }
+
+        public List<Object> DbOperationTemplate(string input)
+            // this class is merely a template for each method in this class
+        {
+            // the list to hold results from the database and eventually return
+            List<Object> results = new List<object>();
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString =  "SELECT * FROM TABLE_NAME " +
+                                        "WHERE TABLE_ID = SOME_VALUE";
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command and assign results to a dataReader
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // while loop to get all row data
+                while (dataReader.Read())
+                {
+                    // new object to hold data
+                    Object obj = new Object();
+
+                    // get data from dataReader
+                    // obj.ATTRIBUTE_NAME = dataReader["COLUMN_NAME"].ToString();
+                    // obj.ATTRIBUTE_NAME = (int) dataReader["COLUMN_NAME"];
+
+                    // put object in list
+                    results.Add(obj);
+                }
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // assign empty list to results
+                results = new List<object>();
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the results
+            return results;
         }
 
 

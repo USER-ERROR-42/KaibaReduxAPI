@@ -13,7 +13,7 @@ namespace KaibaReduxAPI.Controllers
     {
         // GET api/values
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public ActionResult<List<Menu>> Get()
         {
             DbAccessManagement DAM = new DbAccessManagement();
             return DAM.getMenus();
@@ -55,6 +55,8 @@ namespace KaibaReduxAPI.Controllers
 
             List<Item> list = new List<Item>();
             list.Add(test1);
+
+
             return list;
         }
 
