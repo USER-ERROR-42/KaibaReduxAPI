@@ -12,6 +12,28 @@
 				{
 					"name": "https://localhost:44314/api/menu",
 					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "https://localhost:44314/api/menu",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "44314",
+							"path": [
+								"api",
+								"menu"
+							]
+						},
+						"description": "GET- Get All Menus"
+					},
+					"response": []
+				},
+				{
+					"name": "https://localhost:44314/api/menu",
+					"request": {
 						"method": "POST",
 						"header": [
 							{
