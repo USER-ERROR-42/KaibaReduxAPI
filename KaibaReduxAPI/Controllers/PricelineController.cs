@@ -10,48 +10,37 @@ namespace KaibaReduxAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MenuController : ControllerBase
+    public class PricelineController : ControllerBase
     {
-        // GET api/menu
-        [HttpGet]
-        public ActionResult<List<Menu>> GetMenus()
-        // returns a list of the menus
-        {
-            // create DbAccessManagement object
-            DbAccessManagement DAM = new DbAccessManagement();
-            // return the list of menus
-            return DAM.getMenus();
-        }
-
-        [HttpGet("{id}", Name = "GetMenu")] // Route = /api/menu/2
-        public ActionResult<Menu> GetMenu(int id)
-        // takes a menu id as a url parameter and returns a menu object with the corresponding information 
-        // the menu will contain sections, which contain items, which contain pricelines
+        [HttpGet("{id}", Name = "GetPriceline")] // Route = /api/priceline/2
+        public ActionResult<Priceline> GetPriceline(int id)
+        // takes a Priceline id as a url parameter and returns a Priceline object with the corresponding information 
+        // the Priceline will contain pricelines
         {
             DbAccessManagement DAM = new DbAccessManagement();
 
-            // get the menu
-            Menu menu = DAM.getMenu(id);
+            // get the Priceline
+            Priceline priceline = DAM.GetPriceline(id);
 
-            // if it's null, then the menu wasn't found
-            if (menu == null)
+            // if it's null, then the Priceline wasn't found
+            if (priceline == null)
             {
                 // return a 404 ERROR
                 return NotFound();
             }
-            else //otherwise return the menu
+            else //otherwise return the Priceline
             {
-                return menu;
+                return priceline;
             }
         }
 
-        [HttpPost] // Route = /api/menu
-        public IActionResult CreateMenu(Menu menu)
-        // POST request that takes JSON from the request body and builds a Menu object
+        [HttpPost] // Route = /api/priceline
+        public IActionResult CreatePriceline(Priceline priceline)
+        // POST request that takes JSON from the request body and builds a Priceline object
         // returns NoContent (204) if successful, returns server error (500)
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.InsertMenu(menu);
+            bool result = DAM.InsertPriceline(priceline);
             if (result)
             {
                 return StatusCode(201);
@@ -62,15 +51,15 @@ namespace KaibaReduxAPI.Controllers
             }
         }
 
-        [HttpDelete] // Route = DELETE /api/menu
+        [HttpDelete] // Route = DELETE /api/priceline
         // but uses the DELETE method (as opposed to the usual GET or POST
-        public IActionResult DeleteMenu(Menu menu)
-        // takes a menu object from the JSON body and deletes that record
+        public IActionResult DeletePriceline(Priceline priceline)
+        // takes a Priceline object from the JSON body and deletes that record
         // it only requires the id field, and ignores everything else
         // returns NotFound (404) if unsuccessful, returns NoContent (201) if successful
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.DeleteMenu(menu.Id);
+            bool result = DAM.DeletePriceline(priceline.Id);
             if (result)
             {
                 return NoContent();
@@ -81,12 +70,12 @@ namespace KaibaReduxAPI.Controllers
             }
         }
 
-        [HttpPut] // route = PUT /api/menu 
+        [HttpPut] // route = PUT /api/priceline 
         // Note that it uses PUT instead of GET or POST
-        public IActionResult UpdateMenu(Menu menu)
+        public IActionResult UpdatePriceline(Priceline priceline)
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.UpdateMenu(menu);
+            bool result = DAM.UpdatePriceline(priceline);
             if (result)
             {
                 return NoContent();

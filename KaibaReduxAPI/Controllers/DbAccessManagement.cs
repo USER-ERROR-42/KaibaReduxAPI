@@ -110,8 +110,7 @@ namespace KaibaReduxAPI.Controllers
                 // Define the SQL command statement
                 // Web simply want to retrieve a specific menu
                 string commandString = "SELECT * FROM t_menu " +
-                                        "WHERE menuID = " + id + " " +
-                                        "ORDER BY menuPosition";
+                                        "WHERE menuID = " + id;
 
                 // Create the SQL command object, give it the command string and the connection object
                 SqlCommand command = new SqlCommand(commandString, connection);
@@ -165,6 +164,229 @@ namespace KaibaReduxAPI.Controllers
 
             // lastly return the result
             // it's good practice to always have only a single return statement at the end of the method
+            return result;
+        }
+
+        public Section GetSection(int id)
+        // takes a section ID and returns a section object 
+        // returns null if not found
+        {
+            // the list to hold results from the database and eventually return
+            Section result = new Section();
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "SELECT * FROM t_section " +
+                                        "WHERE sectionID = " + id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command and assign results to a dataReader
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // while loop to get all row data
+                if (dataReader.Read())
+                {
+                    // new section object to hold data
+                    Section sect = new Section();
+
+                    // get data from the dataReader
+                    sect.Id = (int)dataReader["sectionID"];
+                    sect.Name = dataReader["sectionName"].ToString();
+                    sect.Description = dataReader["sectionDescription"].ToString();
+                    sect.Position = (double)dataReader["sectionPosition"];
+                    sect.PicturePath = dataReader["sectionPicturePath"].ToString();
+                    sect.MenuID = (int)dataReader["menuID"];
+
+                    // close the DataReader
+                    dataReader.Close();
+
+                    // get this section's items
+                    sect.ItemList = GetItemsInSection(sect.Id);
+
+                    // assign section object to the result to be returned
+                    result = sect;
+                }
+                else
+                {
+                    // no row was returned, so the section was not found
+                    // in that case we return null, to signify that nothing was found
+                    result = null;
+                }
+
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // return a section with the name Database ERROR
+                result = new Section();
+                result.Name = "Database ERROR";
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the results
+            return result;
+        }
+
+        public Item GetItem(int id)
+        // takes an item ID and returns an item object 
+        // returns null if not found
+        {
+            // the list to hold results from the database and eventually return
+            Item result = new Item();
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "SELECT * FROM t_item " +
+                                        "WHERE itemID = " + id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command and assign results to a dataReader
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // while loop to get all row data
+                if (dataReader.Read())
+                {
+                    // new section object to hold data
+                    Item item = new Item();
+
+                    // get data from the dataReader
+                    item.Id = (int)dataReader["itemID"];
+                    item.Name = dataReader["itemName"].ToString();
+                    item.Description = dataReader["itemDescription"].ToString();
+                    item.Position = (double)dataReader["itemPosition"];
+                    item.PicturePath = dataReader["itemPicturePath"].ToString();
+                    item.SectionID = (int)dataReader["sectionID"];
+
+                    // close the DataReader
+                    dataReader.Close();
+
+                    // get this item's pricelines
+                    item.PriceLineList = getPricelinesForItem(item.Id);
+
+                    // assign item object to the result to be returned
+                    result = item;
+                }
+                else
+                {
+                    // no row was returned, so the item was not found
+                    // in that case we return null, to signify that nothing was found
+                    result = null;
+                }
+
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // return an item with the name Database ERROR
+                result = new Item();
+                result.Name = "Database ERROR";
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the results
+            return result;
+        }
+
+        public Priceline GetPriceline(int id)
+        // takes a pricelineID and returns a Priceline object 
+        // returns null if not found
+        {
+            // the list to hold results from the database and eventually return
+            Priceline result = new Priceline();
+
+            // try block to contain DB access statements
+            try
+            {
+                // open the connection
+                OpenDb();
+
+                // define SQL command string
+                string commandString = "SELECT * FROM t_priceline " +
+                                        "WHERE pricelineID = " + id;
+
+                // create sql command object
+                SqlCommand command = new SqlCommand(commandString, connection);
+
+                // excecute command and assign results to a dataReader
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                // while loop to get all row data
+                if (dataReader.Read())
+                {
+                    // new section object to hold data
+                    Priceline price = new Priceline();
+
+                    // get data from the dataReader
+                    price.Id = (int)dataReader["pricelineID"];
+                    price.Description = dataReader["pricelineDescription"].ToString();
+                    price.Price = (decimal)dataReader["pricelinePrice"];
+                    price.Position = (double)dataReader["pricelinePosition"];
+                    price.ItemID = (int)dataReader["itemID"];
+
+                    // close the DataReader
+                    dataReader.Close();
+
+                    // assign result
+                    result = price;
+                }
+                else
+                {
+                    // wasn't found, return null
+                    result = null;
+                }
+
+            }
+            // catch block to handle any errors
+            catch (Exception ex)
+            {
+                // Write the error to the console
+                // The "DB-DEBUG:" is just there to make finding that message in the console easier
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("DB-DEBUG: " + ex.StackTrace);
+
+                // return a priceline with the description Database ERROR
+                result = new Priceline();
+                result.Description = "Database ERROR";
+            }
+            // finally block in which we close the connection, whether or not there was an error
+            finally
+            {
+                CloseDb();
+            }
+
+            // lastly return the results
             return result;
         }
 

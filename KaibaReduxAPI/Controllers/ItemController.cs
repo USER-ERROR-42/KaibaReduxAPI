@@ -10,48 +10,37 @@ namespace KaibaReduxAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MenuController : ControllerBase
+    public class ItemController : ControllerBase
     {
-        // GET api/menu
-        [HttpGet]
-        public ActionResult<List<Menu>> GetMenus()
-        // returns a list of the menus
-        {
-            // create DbAccessManagement object
-            DbAccessManagement DAM = new DbAccessManagement();
-            // return the list of menus
-            return DAM.getMenus();
-        }
-
-        [HttpGet("{id}", Name = "GetMenu")] // Route = /api/menu/2
-        public ActionResult<Menu> GetMenu(int id)
-        // takes a menu id as a url parameter and returns a menu object with the corresponding information 
-        // the menu will contain sections, which contain items, which contain pricelines
+        [HttpGet("{id}", Name = "GetItem")] // Route = /api/item/2
+        public ActionResult<Item> GetItem(int id)
+        // takes a Item id as a url parameter and returns a Item object with the corresponding information 
+        // the Item will contain pricelines
         {
             DbAccessManagement DAM = new DbAccessManagement();
 
-            // get the menu
-            Menu menu = DAM.getMenu(id);
+            // get the Item
+            Item item = DAM.GetItem(id);
 
-            // if it's null, then the menu wasn't found
-            if (menu == null)
+            // if it's null, then the Item wasn't found
+            if (item == null)
             {
                 // return a 404 ERROR
                 return NotFound();
             }
-            else //otherwise return the menu
+            else //otherwise return the Item
             {
-                return menu;
+                return item;
             }
         }
 
-        [HttpPost] // Route = /api/menu
-        public IActionResult CreateMenu(Menu menu)
-        // POST request that takes JSON from the request body and builds a Menu object
+        [HttpPost] // Route = /api/item
+        public IActionResult CreateItem(Item item)
+        // POST request that takes JSON from the request body and builds a Item object
         // returns NoContent (204) if successful, returns server error (500)
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.InsertMenu(menu);
+            bool result = DAM.InsertItem(item);
             if (result)
             {
                 return StatusCode(201);
@@ -62,15 +51,15 @@ namespace KaibaReduxAPI.Controllers
             }
         }
 
-        [HttpDelete] // Route = DELETE /api/menu
+        [HttpDelete] // Route = DELETE /api/item
         // but uses the DELETE method (as opposed to the usual GET or POST
-        public IActionResult DeleteMenu(Menu menu)
-        // takes a menu object from the JSON body and deletes that record
+        public IActionResult DeleteItem(Item item)
+        // takes a Item object from the JSON body and deletes that record
         // it only requires the id field, and ignores everything else
         // returns NotFound (404) if unsuccessful, returns NoContent (201) if successful
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.DeleteMenu(menu.Id);
+            bool result = DAM.DeleteItem(item.Id);
             if (result)
             {
                 return NoContent();
@@ -81,12 +70,12 @@ namespace KaibaReduxAPI.Controllers
             }
         }
 
-        [HttpPut] // route = PUT /api/menu 
+        [HttpPut] // route = PUT /api/item 
         // Note that it uses PUT instead of GET or POST
-        public IActionResult UpdateMenu(Menu menu)
+        public IActionResult UpdateItem(Item item)
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.UpdateMenu(menu);
+            bool result = DAM.UpdateItem(item);
             if (result)
             {
                 return NoContent();

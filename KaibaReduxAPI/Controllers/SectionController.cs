@@ -10,48 +10,37 @@ namespace KaibaReduxAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MenuController : ControllerBase
+    public class SectionController : ControllerBase
     {
-        // GET api/menu
-        [HttpGet]
-        public ActionResult<List<Menu>> GetMenus()
-        // returns a list of the menus
-        {
-            // create DbAccessManagement object
-            DbAccessManagement DAM = new DbAccessManagement();
-            // return the list of menus
-            return DAM.getMenus();
-        }
-
-        [HttpGet("{id}", Name = "GetMenu")] // Route = /api/menu/2
-        public ActionResult<Menu> GetMenu(int id)
-        // takes a menu id as a url parameter and returns a menu object with the corresponding information 
-        // the menu will contain sections, which contain items, which contain pricelines
+        [HttpGet("{id}", Name = "GetSection")] // Route = /api/section/2
+        public ActionResult<Section> GetSection(int id)
+        // takes a section id as a url parameter and returns a section object with the corresponding information 
+        // the section will contain items, which contain pricelines
         {
             DbAccessManagement DAM = new DbAccessManagement();
 
-            // get the menu
-            Menu menu = DAM.getMenu(id);
+            // get the section
+            Section section = DAM.GetSection(id);
 
-            // if it's null, then the menu wasn't found
-            if (menu == null)
+            // if it's null, then the section wasn't found
+            if (section == null)
             {
                 // return a 404 ERROR
                 return NotFound();
             }
-            else //otherwise return the menu
+            else //otherwise return the section
             {
-                return menu;
+                return section;
             }
         }
 
-        [HttpPost] // Route = /api/menu
-        public IActionResult CreateMenu(Menu menu)
-        // POST request that takes JSON from the request body and builds a Menu object
+        [HttpPost] // Route = /api/section
+        public IActionResult CreateSection(Section section)
+        // POST request that takes JSON from the request body and builds a Section object
         // returns NoContent (204) if successful, returns server error (500)
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.InsertMenu(menu);
+            bool result = DAM.InsertSection(section);
             if (result)
             {
                 return StatusCode(201);
@@ -62,15 +51,15 @@ namespace KaibaReduxAPI.Controllers
             }
         }
 
-        [HttpDelete] // Route = DELETE /api/menu
+        [HttpDelete] // Route = DELETE /api/section
         // but uses the DELETE method (as opposed to the usual GET or POST
-        public IActionResult DeleteMenu(Menu menu)
-        // takes a menu object from the JSON body and deletes that record
+        public IActionResult DeleteSection(Section section)
+        // takes a Section object from the JSON body and deletes that record
         // it only requires the id field, and ignores everything else
         // returns NotFound (404) if unsuccessful, returns NoContent (201) if successful
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.DeleteMenu(menu.Id);
+            bool result = DAM.DeleteSection(section.Id);
             if (result)
             {
                 return NoContent();
@@ -81,12 +70,12 @@ namespace KaibaReduxAPI.Controllers
             }
         }
 
-        [HttpPut] // route = PUT /api/menu 
+        [HttpPut] // route = PUT /api/section 
         // Note that it uses PUT instead of GET or POST
-        public IActionResult UpdateMenu(Menu menu)
+        public IActionResult UpdateSection(Section section)
         {
             DbAccessManagement DAM = new DbAccessManagement();
-            bool result = DAM.UpdateMenu(menu);
+            bool result = DAM.UpdateSection(section);
             if (result)
             {
                 return NoContent();
