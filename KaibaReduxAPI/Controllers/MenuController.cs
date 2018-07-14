@@ -20,6 +20,7 @@ namespace KaibaReduxAPI.Controllers
             // create DbAccessManagement object
             DbAccessManagement DAM = new DbAccessManagement();
             // return the list of menus
+            System.Diagnostics.Debug.WriteLine("MenuCont: GetMenus() ");
             return DAM.getMenus();
         }
 

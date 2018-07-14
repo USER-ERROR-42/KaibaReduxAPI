@@ -40,7 +40,9 @@ namespace KaibaReduxAPI
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+            //app.UseHttpsRedirection();
             app.UseMvc();
         }
     }
