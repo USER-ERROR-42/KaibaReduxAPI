@@ -33,7 +33,8 @@ function getMenus() {
                 // Using Jquery create a new <p> object with the menu's info
                 // It has id property: id = menu#, where # is that menu's id number
                 // It also adds an onclick event, so that when clicked it will call showMenu(#), where # is that menu's id number
-                $('<p id="menu' + menu.id + '" onclick="showMenu(' + menu.id + ')"><strong>' + menu.name + '</strong></p>'
+                $('<button id="menu' + menu.id + '" onclick="showMenu(' + menu.id + ')"><strong>' + menu.name + '</strong></button>' +
+                    '<br />'
                 ).appendTo($('#menuList')); // Add it to the menuList div
             }
 
