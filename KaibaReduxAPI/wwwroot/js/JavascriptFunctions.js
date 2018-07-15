@@ -37,12 +37,13 @@ function getMenus() {
                 // It also adds an onclick event, so that when clicked it will call showMenu(#), where # is that menu's id number
                 $('<button id="menu' + menu.id + '" onclick="showMenu(' + menu.id + ')"><strong> Show ' + menu.name + '</strong></button>' +
                     '<button class="edit" onclick="editMenu(' + menu.id + ')"> Edit </button>' + // adds a button to go to the menu edit page
+                    '<button id="deleteMenu' + menu.id + '" class="delete" onclick="deleteMenu(' + menu.id + ')"> Delete </button>' + // adds a button to go to delete the menu
                     '<br />'
                 ).appendTo($(MENUS_LIST_DIV_ID)); // Add it to the menuList div
             }
 
             // add a create new menu button
-            $('<br /> <button class="edit" onclick="editMenu()"> Create new Menu </button>').appendTo($(MENUS_LIST_DIV_ID));;
+            $('<br /> <button class="edit" onclick="editMenu()"> Create new Menu </button>').appendTo($(MENUS_LIST_DIV_ID));
 
         },
         error: function (jqXHR, status, errorThrown) {      // This function will run if there's an error
@@ -54,7 +55,7 @@ function getMenus() {
 }
 
 function showMenu(id = 1) {
-    // shows a specific menu, the first paramenter is the id, which defaults to 1 (the first menu)
+    // shows a specific menu, the first paramenter is the id, which defaults to the current menu being shown
     // The affected div is given by the MENU_CONTENTS_DIV_ID constant 
     // creates nested divs and <p> inside the specified div (also clears any elements currently in the div)
 
@@ -72,9 +73,11 @@ function showMenu(id = 1) {
             
             // Using Jquery create a new <p> elements with the menu's info
             $('<p id="menu' + menu.id + '" ><strong>' + menu.name + '</strong></p>' +
-                '<p><i> ' + menu.description + ' </i></p>' +
-                '<br />'
+                '<p><i> ' + menu.description + ' </i></p>'
             ).appendTo($(MENU_CONTENTS_DIV_ID)); // Add it to the specified div
+            
+            // add a create new section button, passes a negative id, which signifies that it is a create, the negative number is the menuId to within which the section should be created
+            $('<button class="edit" onclick="editSection(-' + menu.id + ')"> Create new Section in ' + menu.name + '</button> <br /> <br />').appendTo($(MENU_CONTENTS_DIV_ID));
 
             // loop through the sectionList variable of the menu object
             for (let i = 0; i < menu.sectionList.length; i++) {
@@ -83,8 +86,20 @@ function showMenu(id = 1) {
                 // display each section 
                 showSection(section);
             }
-            
 
+            if (menu.sectionList.length > 0) {
+                // add a create new section button
+                $('<br /> <button class="edit" onclick="editSection(-' + menu.id + ')"> Create new Section in ' + menu.name + '</button>').appendTo($(MENU_CONTENTS_DIV_ID));
+            }
+            
+            // change id of the current menu being shown
+            currentMenuID = id;
+
+            // check if edit buttons should be hidden
+            if (editButtonsShowing == false) {
+                hideEditButtons();
+                console.log("hide");
+            }
         },
         error: function (jqXHR, status, errorThrown) {      // This function will run if there's an error
             alert("ERROR: Can't retrieve that menu " + errorThrown + " ");   // Pop up a textbox with an error message
@@ -96,7 +111,10 @@ function showSection(section) {
     // takes a section object and adds <p> describing it to the menu contents div (given by the constant MENU_CONTENTS_DIV_ID)
 
     $('<p id="section' + section.id + '" ><strong>' + section.name + '</strong></p>' +
-        '<p><i> ' + section.description + ' </i></p>'
+        '<p><i> ' + section.description + ' </i></p>' +
+        '<button class="edit" onclick="editSection(' + section.id + ')"> Edit ' + section.name + '</button>' + // adds a button to go to the section edit page
+        '<button id="deleteSection' + section.id + '" class="delete" onclick="deleteSection(' + section.id + ')"> Delete ' + section.name + '</button>' + // adds a button to go to delete the section
+        '<br /> <br />'
     ).appendTo($(MENU_CONTENTS_DIV_ID)); // Add it to the specified div
 
     // loop through the itemList variable of the section object
@@ -142,6 +160,22 @@ function showPriceline(priceline) {
 
     $('<p id="priceline' + priceline.id + '" >' + priceline.description + ' - $' + priceline.price + '</p>'
     ).appendTo($(MENU_CONTENTS_DIV_ID)); // Add it to the specified div
+}
+
+function showEditButtons() {
+    // shows all edit buttons (which start hidden)
+    $("#loginButton").text("Logout");
+    $("#loginDesc").text("Press to hide edit buttons");
+    $(".edit").show();
+    $(".delete").show();
+}
+
+function hideEditButtons() {
+    // shows all edit buttons (which start hidden)
+    $("#loginButton").text("Login");
+    $("#loginDesc").text("Press to show edit buttons");
+    $(".edit").hide();
+    $(".delete").hide();
 }
 
 function getQueryParam(param) {
@@ -194,7 +228,7 @@ function submitMenu(create) {
         "id": parseInt($('#id').val()),
         "name": $('#name').val(),
         "description": $('#description').val(),
-        "position": parseFloat($('#id').val())
+        "position": parseFloat($('#position').val())
         };
 
     // request method is either POST (create) or PUT (edit)
@@ -220,6 +254,176 @@ function submitMenu(create) {
         },
         success: function (result) {
             alert('Menu successfully ' + operationString);
+            window.location = "index.html";
+            
         }
     });
+}
+
+function deleteMenu(id) {
+    // called by a delete button
+    // first call changes the button's text to "Confirm Delete?"
+    // second call sends an ajax request to delete that entry, then gets the menus again
+    
+    // the confirm delete text
+    let confirmDeleteText = "Confirm Delete?";
+
+    // id of current button
+    let buttonID = "#deleteMenu" + id;
+
+    if ($(buttonID).text() != confirmDeleteText) {
+        // first call changes the text of the calling button
+        $(buttonID).text(confirmDeleteText)
+        console.log($(this).text());
+    }
+    else {
+        // second call sends the ajax delete request
+
+        // JSON to be sent, only requires the id
+        let jsonString = '{ "id": ' + id +' }';
+
+        $.ajax({
+            method: "DELETE",                     // method is DELETE
+            accepts: 'application/json',
+            url: URL + "menu",                  // url is api/menu
+            contentType: 'application/json',    // type of data being sent
+            data: jsonString,                   // actual data being sent, use JSON library to convert the menu object to JSON
+            success: function (result) {
+                // Change button text
+                $(buttonID).text("Successfully Deleted");
+
+                // Remove this button's onclick event
+                $(buttonID).prop('onclick', null).off('click');
+
+                // refresh menus
+                getMenus();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                // Change button text to show delete failure
+                $(buttonID).text("Delete Failed");
+            }
+        });
+    }
+}
+
+function editSection(id = null) {
+    // redirects to the Section Edit/Create page, passes an id as a url parameter if one is passed
+
+    let param = "";
+    if (id != null) {
+        param = "?id=" + id;
+    }
+    window.location = "editSection.html" + param;
+}
+
+function loadSection(id) {
+    // takes a section id and loads it's info into the input elements (id, name, description, and position)
+
+    // Jquery ajax call to get the specific section
+    $.ajax({
+        method: 'GET',
+        url: URL + "section/" + id,    // The URL we want is api/section/#
+        dataType: "json",
+        success: function (section) {  // function called if successful
+            $('#id').val(section.id);
+            $('#name').val(section.name);
+            $('#description').val(section.description);
+            $('#position').val(section.position);
+            $('#menuID').val(section.menuID);
+            $('#picturePath').val(section.picturePath);
+        },
+        error: function (jqXHR, status, errorThrown) {      // This function will run if there's an error
+            alert("ERROR: Can't retrieve that section " + errorThrown + " ");   // Pop up a textbox with an error message
+        }
+    });
+}
+
+function submitSection(create) {
+    // takes the values of the section input elements (id, name, description, and position)
+    // and passes them to the api using create if true is passed and using edit if false is passed
+
+    // create section object by getting value attribute of the input elements
+    let section = {
+        "id": parseInt($('#id').val()),
+        "name": $('#name').val(),
+        "description": $('#description').val(),
+        "position": parseFloat($('#position').val()),
+        "menuID": $('#menuID').val(),
+        "picturePath": $('#picturePath').val()
+    };
+
+    // request method is either POST (create) or PUT (edit)
+    let methodString, operationString;
+    if (create) {
+        methodString = "POST";
+        operationString = "created";
+    }
+    else {
+        methodString = "PUT";
+        operationString = "updated";
+    }
+    console.log(JSON.stringify(section));
+
+    // ajax call
+    $.ajax({
+        method: methodString,               // either POST or PUT
+        accepts: 'application/json',
+        url: URL + "section",                  // url is api/section
+        contentType: 'application/json',    // type of data being sent
+        data: JSON.stringify(section),         // actual data being sent, use JSON library to convert the section object to JSON
+        error: function (jqXHR, textStatus, errorThrown) {
+            alert('Error: Section could not be ' + operationString);
+        },
+        success: function (result) {
+            alert('Section successfully ' + operationString);
+            window.location = "index.html";
+
+        }
+    });
+}
+
+function deleteSection(id) {
+    // called by a delete button
+    // first call changes the button's text to "Confirm Delete?"
+    // second call sends an ajax request to delete that entry, then gets the sections again
+
+    // the confirm delete text
+    let confirmDeleteText = "Confirm Delete?";
+
+    // id of current button
+    let buttonID = "#deleteSection" + id;
+
+    if ($(buttonID).text() != confirmDeleteText) {
+        // first call changes the text of the calling button
+        $(buttonID).text(confirmDeleteText)
+        console.log($(this).text());
+    }
+    else {
+        // second call sends the ajax delete request
+
+        // JSON to be sent, only requires the id
+        let jsonString = '{ "id": ' + id + ' }';
+
+        $.ajax({
+            method: "DELETE",                     // method is DELETE
+            accepts: 'application/json',
+            url: URL + "section",                  // url is api/section
+            contentType: 'application/json',    // type of data being sent
+            data: jsonString,                   // actual data being sent, use JSON library to convert the section object to JSON
+            success: function (result) {
+                // Change button text
+                $(buttonID).text("Successfully Deleted");
+
+                // Remove this button's onclick event
+                $(buttonID).prop('onclick', null).off('click');
+
+                // refresh current menu
+                showMenu(currentMenuID);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                // Change button text to show delete failure
+                $(buttonID).text("Delete Failed");
+            }
+        });
+    }
 }

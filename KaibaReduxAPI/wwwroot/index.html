@@ -13,16 +13,32 @@
     <script>
         // This is the javascript for this page
 
+        // id of current menu being shown (starts with id = 1)
+        var currentMenuID = 1;
+
+        // global to denote whether edit buttons are hidden or not 
+        var editButtonsShowing = true;
+
         $(document).ready(function () {
             // code written here is not executed until the web page has finished loading, preventing any errors with page elements not having loaded yet
 
             // get the various menus from the API
             getMenus();
 
-            // show the first menu
-            showMenu();
+            // show the first menu (defaults to currentMenuID's value)
+            showMenu(currentMenuID);
 
-
+            // assign show/hide edit events to the login button
+            $("#loginButton").click(function () {
+                if (editButtonsShowing) {
+                    hideEditButtons();
+                    editButtonsShowing = false;
+                }
+                else {
+                    showEditButtons();
+                    editButtonsShowing = true;
+                }
+            });
 
 
 
@@ -35,6 +51,10 @@
 
     <h1>Menu</h1>
 
+    <button id="loginButton"> Login </button>
+    <p id="loginDesc"> <i> Press to show edit buttons </i> </p>
+
+    <br />
 
     <p> List of Menus</p>
     <p><i> (Click to show that menu) </i></p>
