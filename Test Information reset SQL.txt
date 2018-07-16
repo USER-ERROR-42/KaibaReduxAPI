@@ -38,7 +38,7 @@ CREATE TABLE dbo.t_item
     itemDescription varchar(500) NULL, 
     itemPosition float NOT NULL,
     itemPicturePath varchar(500) NULL, 
-    sectionID int FOREIGN KEY REFERENCES t_section(sectionID)
+    sectionID int FOREIGN KEY REFERENCES t_section(sectionID) ON DELETE CASCADE
 	);
 
 CREATE TABLE dbo.t_priceline 
@@ -46,7 +46,7 @@ CREATE TABLE dbo.t_priceline
     pricelineDescription varchar(100) NULL,  
     pricelinePrice money NOT NULL,
     pricelinePosition float NOT NULL, 
-    itemID int FOREIGN KEY REFERENCES t_item(itemID)
+    itemID int FOREIGN KEY REFERENCES t_item(itemID) ON DELETE CASCADE
 	);
 	
 GO
@@ -97,5 +97,7 @@ INSERT INTO t_priceline (pricelineDescription, pricelinePrice, pricelinePosition
 ('Vodka', 50, 1, 8);
 
 GO
+
+
 
 

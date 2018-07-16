@@ -13,10 +13,18 @@
     <script>
         // This is the javascript for this page
 
-        // id of current menu being shown (starts with id = 1)
-        var currentMenuID = 1;
+        // Set id of current menu being shown
+        // taken from id url parameter, if not set defaults to 1
+        if (getQueryParam("id") == null) {
+            var currentMenuID = 1;
+        }
+        else {
+            // otherwise load the info for the menu that is being edited
+            var currentMenuID = parseInt(getQueryParam("id"));
+        }
 
         // global to denote whether edit buttons are hidden or not 
+        // set to true to have the buttons default to being shown
         var editButtonsShowing = true;
 
         $(document).ready(function () {
@@ -68,5 +76,10 @@
 
     <div id="menuContents"></div>
 
+
+    <br />
+    <br />
+    <br />
+    <br />
 </body>
 </html>
