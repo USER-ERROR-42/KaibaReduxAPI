@@ -29,7 +29,11 @@
                 $('#idLabel').hide();
 
                 // assign the menuID
-                $('#menuID').val(-1 * (parseInt(getQueryParam("id"))));
+                let menuID = (-1 * (parseInt(getQueryParam("id"))));
+                $('#menuID').val(menuID);
+                console.log("sdgdslg " + menuID);
+                // change the back link to go to this section's menu
+                $("#menuDisplayLink").attr("href", "index.html?id=" + menuID);
             }
             else {
                 // otherwise load the info for the section that is being edited
@@ -72,7 +76,7 @@
     </div>
 
     <br><br>
-    <a href="index.html">Back to Menu Display</a>
+    <a id="menuDisplayLink" href="index.html">Back to Menu Display</a>
 
 </body>
 </html>

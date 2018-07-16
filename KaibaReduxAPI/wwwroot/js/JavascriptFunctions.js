@@ -352,12 +352,17 @@ function loadSection(id) {
         url: URL + "section/" + id,    // The URL we want is api/section/#
         dataType: "json",
         success: function (section) {  // function called if successful
+
+            // load data into the input elements
             $('#id').val(section.id);
             $('#name').val(section.name);
             $('#description').val(section.description);
             $('#position').val(section.position);
             $('#menuID').val(section.menuID);
             $('#picturePath').val(section.picturePath);
+
+            // change the back link to go to this section's menu
+            $("#menuDisplayLink").attr("href", "index.html?id=" + section.menuID);
         },
         error: function (jqXHR, status, errorThrown) {      // This function will run if there's an error
             alert("ERROR: Can't retrieve that section " + errorThrown + " ");   // Pop up a textbox with an error message

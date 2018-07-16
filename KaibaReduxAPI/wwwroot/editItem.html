@@ -22,6 +22,9 @@
             // set menuID that we should return to after a sucessful create/edit
             if (parseInt(getQueryParam("menuID")) > 0) {
                 var menuID = parseInt(getQueryParam("menuID"));
+                
+                // change the back link to go to this item's menu
+                $("#menuDisplayLink").attr("href", "index.html?id=" + menuID);
             }
             else {
                 var menuID = 1;
@@ -87,7 +90,7 @@
     </div>
 
     <br><br>
-    <a href="index.html">Back to Menu Display</a>
+    <a id="menuDisplayLink" href="index.html">Back to Menu Display</a>
 
 </body>
 </html>
