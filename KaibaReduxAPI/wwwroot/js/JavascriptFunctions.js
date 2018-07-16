@@ -234,41 +234,51 @@ function submitMenu(create) {
     // takes the values of the menu input elements (id, name, description, and position)
     // and passes them to the api using create if true is passed and using edit if false is passed
 
-    // create menu object by getting value attribute of the input elements
-    let menu = {
-        "id": parseInt($('#id').val()),
-        "name": $('#name').val(),
-        "description": $('#description').val(),
-        "position": parseFloat($('#position').val())
+    // data validation: check if position is a number
+    let errorString = isPositiveNumber($('#position').val(),"Position");
+
+    if (errorString == "") {
+
+        // create menu object by getting value attribute of the input elements
+        let menu = {
+            "id": parseInt($('#id').val()),
+            "name": $('#name').val(),
+            "description": $('#description').val(),
+            "position": parseFloat($('#position').val())
         };
 
-    // request method is either POST (create) or PUT (edit)
-    let methodString, operationString;
-    if (create) {
-        methodString = "POST";
-        operationString = "created";
+        // request method is either POST (create) or PUT (edit)
+        let methodString, operationString;
+        if (create) {
+            methodString = "POST";
+            operationString = "created";
+        }
+        else {
+            methodString = "PUT";
+            operationString = "updated";
+        }
+
+        // ajax call
+        $.ajax({
+            method: methodString,               // either POST or PUT
+            accepts: 'application/json',
+            url: URL + "menu",                  // url is api/menu
+            contentType: 'application/json',    // type of data being sent
+            data: JSON.stringify(menu),         // actual data being sent, use JSON library to convert the menu object to JSON
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert('Error: Menu could not be ' + operationString);
+            },
+            success: function (result) {
+                alert('Menu successfully ' + operationString);
+                window.location = "index.html?id=" + menu.id;
+
+            }
+        });
     }
     else {
-        methodString = "PUT";
-        operationString = "updated";
+        // if there was an error display it
+        alert(errorString);
     }
-
-    // ajax call
-    $.ajax({
-        method: methodString,               // either POST or PUT
-        accepts: 'application/json',        
-        url: URL + "menu",                  // url is api/menu
-        contentType: 'application/json',    // type of data being sent
-        data: JSON.stringify(menu),         // actual data being sent, use JSON library to convert the menu object to JSON
-        error: function (jqXHR, textStatus, errorThrown) {
-            alert('Error: Menu could not be ' + operationString);
-        },
-        success: function (result) {
-            alert('Menu successfully ' + operationString);
-            window.location = "index.html?id=" + menu.id;
-            
-        }
-    });
 }
 
 function deleteMenu(id) {
@@ -353,44 +363,56 @@ function submitSection(create) {
     // takes the values of the section input elements (id, name, description, and position)
     // and passes them to the api using create if true is passed and using edit if false is passed
 
-    // create section object by getting value attribute of the input elements
-    let section = {
-        "id": parseInt($('#id').val()),
-        "name": $('#name').val(),
-        "description": $('#description').val(),
-        "position": parseFloat($('#position').val()),
-        "menuID": $('#menuID').val(),
-        "picturePath": $('#picturePath').val()
-    };
 
-    // request method is either POST (create) or PUT (edit)
-    let methodString, operationString;
-    if (create) {
-        methodString = "POST";
-        operationString = "created";
+    // data validation check if position is a number
+    let errorString = isPositiveNumber($('#position').val(), "Position");
+
+    if (errorString == "") {
+
+
+        // create section object by getting value attribute of the input elements
+        let section = {
+            "id": parseInt($('#id').val()),
+            "name": $('#name').val(),
+            "description": $('#description').val(),
+            "position": parseFloat($('#position').val()),
+            "menuID": $('#menuID').val(),
+            "picturePath": $('#picturePath').val()
+        };
+
+        // request method is either POST (create) or PUT (edit)
+        let methodString, operationString;
+        if (create) {
+            methodString = "POST";
+            operationString = "created";
+        }
+        else {
+            methodString = "PUT";
+            operationString = "updated";
+        }
+        //console.log(JSON.stringify(section));
+
+        // ajax call
+        $.ajax({
+            method: methodString,               // either POST or PUT
+            accepts: 'application/json',
+            url: URL + "section",                  // url is api/section
+            contentType: 'application/json',    // type of data being sent
+            data: JSON.stringify(section),         // actual data being sent, use JSON library to convert the section object to JSON
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert('Error: Section could not be ' + operationString);
+            },
+            success: function (result) {
+                alert('Section successfully ' + operationString);
+                window.location = "index.html?id=" + section.menuID;
+
+            }
+        });
     }
     else {
-        methodString = "PUT";
-        operationString = "updated";
+        // display error
+        alert(errorString);
     }
-    //console.log(JSON.stringify(section));
-
-    // ajax call
-    $.ajax({
-        method: methodString,               // either POST or PUT
-        accepts: 'application/json',
-        url: URL + "section",                  // url is api/section
-        contentType: 'application/json',    // type of data being sent
-        data: JSON.stringify(section),         // actual data being sent, use JSON library to convert the section object to JSON
-        error: function (jqXHR, textStatus, errorThrown) {
-            alert('Error: Section could not be ' + operationString);
-        },
-        success: function (result) {
-            alert('Section successfully ' + operationString);
-            window.location = "index.html?id=" + section.menuID;
-
-        }
-    });
 }
 
 function deleteSection(id) {
@@ -558,43 +580,54 @@ function submitItem(create, menuID = 1) {
     // and passes them to the api using create if true is passed and using edit if false is passed
     // second parameter is the menuID, used for the direct back to the display menu page (defaults to 1)
 
-    // create item object by getting value attribute of the input elements
-    let item = {
-        "id": parseInt($('#id').val()),
-        "name": $('#name').val(),
-        "description": $('#description').val(),
-        "position": parseFloat($('#position').val()),
-        "sectionID": $('#sectionID').val(),
-        "picturePath": $('#picturePath').val()
-    };
+    // datavalidation check if position is a number
+    let errorString = isPositiveNumber($('#position').val(), "Item Position");
 
-    // request method is either POST (create) or PUT (edit)
-    let methodString, operationString;
-    if (create) {
-        methodString = "POST";
-        operationString = "created";
+    if (errorString == "") {
+
+
+        // create item object by getting value attribute of the input elements
+        let item = {
+            "id": parseInt($('#id').val()),
+            "name": $('#name').val(),
+            "description": $('#description').val(),
+            "position": parseFloat($('#position').val()),
+            "sectionID": $('#sectionID').val(),
+            "picturePath": $('#picturePath').val()
+        };
+
+        // request method is either POST (create) or PUT (edit)
+        let methodString, operationString;
+        if (create) {
+            methodString = "POST";
+            operationString = "created";
+        }
+        else {
+            methodString = "PUT";
+            operationString = "updated";
+        }
+        console.log(JSON.stringify(item));
+
+        // ajax call
+        $.ajax({
+            method: methodString,               // either POST or PUT
+            accepts: 'application/json',
+            url: URL + "item",                  // url is api/item
+            contentType: 'application/json',    // type of data being sent
+            data: JSON.stringify(item),         // actual data being sent, use JSON library to convert the item object to JSON
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert('Error: Item could not be ' + operationString);
+            },
+            success: function (result) {
+                alert('Item successfully ' + operationString);
+                window.location = "index.html?id=" + menuID;
+            }
+        });
     }
     else {
-        methodString = "PUT";
-        operationString = "updated";
+        // display errorString
+        alert(errorString);
     }
-    console.log(JSON.stringify(item));
-
-    // ajax call
-    $.ajax({
-        method: methodString,               // either POST or PUT
-        accepts: 'application/json',
-        url: URL + "item",                  // url is api/item
-        contentType: 'application/json',    // type of data being sent
-        data: JSON.stringify(item),         // actual data being sent, use JSON library to convert the item object to JSON
-        error: function (jqXHR, textStatus, errorThrown) {
-            alert('Error: Item could not be ' + operationString);
-        },
-        success: function (result) {
-            alert('Item successfully ' + operationString);
-            window.location = "index.html?id=" + menuID;
-        }
-    });
 }
 
 function deleteItem(id) {
@@ -647,44 +680,54 @@ function submitPriceline(pricelineID, create) {
     // takes a pricelineID and then grabs the values from the input elements (id, description, price, and position)
     // and passes them to the api using create if true is passed and using edit if false is passed
 
-    // create priceline object by getting value attribute of the input elements
-    let priceline = {
-        "id": parseInt($('#pricelineID' + pricelineID).val()),
-        "description": $('#pricelineDescription' + pricelineID).val(),
-        "price": parseFloat($('#pricelinePrice' + pricelineID).val()),
-        "position": parseFloat($('#pricelinePosition' + pricelineID).val()),
-        "itemID": $('#pricelineItemID' + pricelineID).val()
-    };
+    // data validation: check if position and price are numbers
+    let errorString = isPositiveNumber($('#pricelinePrice').val(), "Priceline Price") + isPositiveNumber($('#pricelinePosition').val(), "Priceline Position");
 
-    // request method is either POST (create) or PUT (edit)
-    let methodString, operationString;
-    if (create) {
-        methodString = "POST";
-        operationString = "created";
+    if (errorString == "") {
+
+        // create priceline object by getting value attribute of the input elements
+        let priceline = {
+            "id": parseInt($('#pricelineID' + pricelineID).val()),
+            "description": $('#pricelineDescription' + pricelineID).val(),
+            "price": parseFloat($('#pricelinePrice' + pricelineID).val()),
+            "position": parseFloat($('#pricelinePosition' + pricelineID).val()),
+            "itemID": $('#pricelineItemID' + pricelineID).val()
+        };
+
+        // request method is either POST (create) or PUT (edit)
+        let methodString, operationString;
+        if (create) {
+            methodString = "POST";
+            operationString = "created";
+        }
+        else {
+            methodString = "PUT";
+            operationString = "updated";
+        }
+        console.log(JSON.stringify(priceline));
+
+        // ajax call
+        $.ajax({
+            method: methodString,               // either POST or PUT
+            accepts: 'application/json',
+            url: URL + "priceline",                  // url is api/priceline
+            contentType: 'application/json',    // type of data being sent
+            data: JSON.stringify(priceline),         // actual data being sent, use JSON library to convert the priceline object to JSON
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert('Error: Priceline could not be ' + operationString);
+            },
+            success: function (result) {
+                alert('Priceline successfully ' + operationString);
+
+                // reload this item and its pricelines
+                loadItem(priceline.itemID);
+            }
+        });
     }
     else {
-        methodString = "PUT";
-        operationString = "updated";
+        // display errorString
+        alert(errorString);
     }
-    console.log(JSON.stringify(priceline));
-
-    // ajax call
-    $.ajax({
-        method: methodString,               // either POST or PUT
-        accepts: 'application/json',
-        url: URL + "priceline",                  // url is api/priceline
-        contentType: 'application/json',    // type of data being sent
-        data: JSON.stringify(priceline),         // actual data being sent, use JSON library to convert the priceline object to JSON
-        error: function (jqXHR, textStatus, errorThrown) {
-            alert('Error: Priceline could not be ' + operationString);
-        },
-        success: function (result) {
-            alert('Priceline successfully ' + operationString);
-
-            // reload this item and its pricelines
-            loadItem(priceline.itemID);
-        }
-    });
 }
 
 function deletePriceline(id, itemID) {
@@ -732,3 +775,25 @@ function deletePriceline(id, itemID) {
         });
     }
 }
+
+function isPositiveNumber(input, fieldName) {
+    // takes an input and checks whether it's a positive number or not
+    // second param is the name of the field being checked (using in error message)
+    // returns empty string if true, an error string if false
+
+    let result = "";
+
+    // check that's it's not null or an empty string, a number and greater than 0
+    // isNaN() returns true if the input is not a number, false if it is
+    // so get the opposite using not (!)
+    let isNum = (input != null) && (input != "") && (!isNaN(input)) && parseFloat(input) > 0;
+
+    if (isNum) {
+        result = "";
+    }
+    else {
+        result = "" + fieldName + " must be a positive number. ";
+    }
+    return result;
+}
+

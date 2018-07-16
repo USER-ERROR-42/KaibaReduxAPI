@@ -11,8 +11,15 @@ WHERE m.menuID = s.menuID
 ORDER BY m.menuPosition, s.sectionPosition, i.itemPosition, p.pricelinePosition
 
 
+-- Table select statements
 
+select * from t_menu
 
+select * from t_section
+
+select * from t_item
+
+select * from t_priceline
 
 
 

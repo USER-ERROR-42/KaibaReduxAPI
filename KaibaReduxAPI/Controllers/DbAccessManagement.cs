@@ -669,6 +669,7 @@ namespace KaibaReduxAPI.Controllers
                 string commandString = "INSERT INTO t_section (sectionName, sectionDescription, sectionPosition, sectionPicturePath, menuID) " +
                                         "VALUES ('" + section.Name + "', '" + section.Description + "', " + section.Position + ", '" + section.PicturePath + "', " + section.MenuID + ")";
 
+                System.Diagnostics.Debug.WriteLine("AAAAAAAAAAAAAAAA: " + commandString);
                 // create sql command object
                 SqlCommand command = new SqlCommand(commandString, connection);
 
