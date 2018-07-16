@@ -270,7 +270,13 @@ function submitMenu(create) {
             },
             success: function (result) {
                 alert('Menu successfully ' + operationString);
-                window.location = "index.html?id=" + menu.id;
+
+                var redirectParam = ""
+                // if this is an edit redirect to that menu display
+                if (!create) {
+                    redirectParam = "?id=" + menu.id;
+                }
+                window.location = "index.html" + redirectParam;
 
             }
         });
