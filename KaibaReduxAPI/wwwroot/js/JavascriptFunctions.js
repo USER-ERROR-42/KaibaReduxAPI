@@ -687,7 +687,7 @@ function submitPriceline(pricelineID, create) {
     // and passes them to the api using create if true is passed and using edit if false is passed
 
     // data validation: check if position and price are numbers
-    let errorString = isPositiveNumber($('#pricelinePrice').val(), "Priceline Price") + isPositiveNumber($('#pricelinePosition').val(), "Priceline Position");
+    let errorString = isPositiveNumber($('#pricelinePrice' + pricelineID).val(), "Priceline Price") + isPositiveNumber($('#pricelinePosition' + pricelineID).val(), "Priceline Position");
 
     if (errorString == "") {
 
