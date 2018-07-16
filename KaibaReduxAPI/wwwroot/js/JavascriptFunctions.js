@@ -792,7 +792,7 @@ function isPositiveNumber(input, fieldName) {
         result = "";
     }
     else {
-        result = "" + fieldName + " must be a positive number. ";
+        result = "" + fieldName + " must be a positive number. \n";
     }
     return result;
 }
