@@ -9,6 +9,9 @@ const MENUS_LIST_DIV_ID = "#menuList";
 // The id of the div in which to put the <p> elements describing the menu's contents
 const MENU_CONTENTS_DIV_ID = "#menuContents";
 
+// The id of the div on the editItem page that contains the pricelines
+const PRICELINE_DIV_ID = "#pricelineDiv";
+
 
 function getMenus() {
     // This function gets the list of menus from the API
@@ -280,7 +283,7 @@ function deleteMenu(id) {
     let buttonID = "#deleteMenu" + id;
 
     if ($(buttonID).text() != confirmDeleteText) {
-        // first call changes the text of the calling button
+        // first call of deleteMenu() changes the text of the calling button
         $(buttonID).text(confirmDeleteText)
         console.log($(this).text());
     }
@@ -295,7 +298,7 @@ function deleteMenu(id) {
             accepts: 'application/json',
             url: URL + "menu",                  // url is api/menu
             contentType: 'application/json',    // type of data being sent
-            data: jsonString,                   // actual data being sent, use JSON library to convert the menu object to JSON
+            data: jsonString,                   // actual data being sent
             success: function (result) {
                 // Change button text
                 $(buttonID).text("Successfully Deleted");
@@ -416,7 +419,7 @@ function deleteSection(id) {
             accepts: 'application/json',
             url: URL + "section",                  // url is api/section
             contentType: 'application/json',    // type of data being sent
-            data: jsonString,                   // actual data being sent, use JSON library to convert the section object to JSON
+            data: jsonString,                   // actual data being sent
             success: function (result) {
                 // Change button text
                 $(buttonID).text("Successfully Deleted");
@@ -446,7 +449,9 @@ function editItem(itemID, menuID) {
 }
 
 function loadItem(id) {
-    // takes an item id and loads it's info into the input elements (id, name, description, and position)
+    // takes an item id and loads it's info into the input elements (id, name, description, position, etc)
+    // Also adds elements describing its associated pricelines to the pricelineDiv
+
 
     // Jquery ajax call to get the specific item
     $.ajax({
@@ -460,11 +465,92 @@ function loadItem(id) {
             $('#position').val(item.position);
             $('#sectionID').val(item.sectionID);
             $('#picturePath').val(item.picturePath);
+
+            // empty elements from the PRICELINE_DIV_ID 
+            $(PRICELINE_DIV_ID).empty();
+
+            // add a button to add another priceline form
+            $('<button class="edit" id="newPricelineButton"> Add new priceline </button> <br/> <br/> ').appendTo($(PRICELINE_DIV_ID)); 
+            // add onclick event to add the form and hide this button
+            $('#newPricelineButton').click(function() {
+                listPriceline(null, item.id);
+                $(this).hide();
+            });
+            
+            // loop through pricelines
+            for (let i = 0; i < item.priceLineList.length; i++) {
+                let priceline = item.priceLineList[i];
+
+                listPriceline(priceline);
+            }
         },
         error: function (jqXHR, status, errorThrown) {      // This function will run if there's an error
             alert("ERROR: Can't retrieve this item " + errorThrown + " ");   // Pop up a textbox with an error message
         }
     });
+}
+
+function listPriceline(priceline, itemID) {
+    // takes a priceline object and adds input fields with it's contents to the PRICELINE_DIV_ID
+    // and also adds submit changes and delete priceline buttons
+    // if the priceline object is null, it substitutes an empty priceline object with id = 0 (for a create operation, where id doesn't matter)
+    // the second parameter is an itemID, given when this is a create
+
+    //console.log(priceline);
+
+    // if it's null then this is a create
+    if (priceline == null) {
+        var create = true;
+        priceline = {
+            "id": 0,
+            "description": "",
+            "price": "",
+            "position": "",
+            "itemID": itemID
+        };
+        console.log(priceline);
+    }
+    else {
+        var create = false;
+    }
+
+    // create the html string of input elements
+    var htmlString = "";
+
+    if (create) {
+        htmlString += '<span>New Priceline Submission: </span><br>';
+    }
+
+    htmlString += 
+        '<span>Priceline Description </span><br>' +
+        '<input id="pricelineDescription' + priceline.id + '" type = "text" value = "' + priceline.description + '"> <br />' +
+        '<span>Priceline Price ($) </span><br>' +
+        '<input id="pricelinePrice' + priceline.id + '" type = "text" value = "' + priceline.price + '"> <br />' +
+        '<span>Priceline Position </span><br>' +
+        '<input id="pricelinePosition' + priceline.id + '" type = "text" value = "' + priceline.position + '">' +
+        '<input id="pricelineItemID' + priceline.id + '" type = "hidden" value = "' + priceline.itemID + '">' +
+        '<input id="pricelineID' + priceline.id + '" type = "hidden" value = "' + priceline.id + '"> <br />';
+
+    // only want a submit button if this is a create
+    if (create) {
+        htmlString += '<button class="edit" onclick="submitPriceline(' + priceline.id + ', true)"> Submit New Priceline </button>' // submit button;
+    }
+    else {
+        htmlString += 
+            '<button class="edit" onclick="submitPriceline(' + priceline.id + ', false)"> Submit Priceline Changes</button>' + // submit changes button
+            '<button id="deletePriceline' + priceline.id + '" class="delete" onclick="deletePriceline(' + priceline.id + ', ' + priceline.itemID + ')"> Delete this Priceline</button> <br /> <br /> ' // delete priceline button
+    }
+
+    htmlString += '<br /> ';
+
+    // if this is a create add to beginning of div
+    if (create) {
+        $(htmlString).prependTo($(PRICELINE_DIV_ID));
+    }
+    else {
+        // otherwise add to end of div
+        $(htmlString).appendTo($(PRICELINE_DIV_ID));
+    }
 }
 
 function submitItem(create, menuID = 1) {
@@ -538,7 +624,7 @@ function deleteItem(id) {
             accepts: 'application/json',
             url: URL + "item",                  // url is api/item
             contentType: 'application/json',    // type of data being sent
-            data: jsonString,                   // actual data being sent, use JSON library to convert the item object to JSON
+            data: jsonString,                   // actual data being sent
             success: function (result) {
                 // Change button text
                 $(buttonID).text("Successfully Deleted");
@@ -548,6 +634,96 @@ function deleteItem(id) {
 
                 // refresh current menu
                 showMenu(currentMenuID);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                // Change button text to show delete failure
+                $(buttonID).text("Delete Failed");
+            }
+        });
+    }
+}
+
+function submitPriceline(pricelineID, create) {
+    // takes a pricelineID and then grabs the values from the input elements (id, description, price, and position)
+    // and passes them to the api using create if true is passed and using edit if false is passed
+
+    // create priceline object by getting value attribute of the input elements
+    let priceline = {
+        "id": parseInt($('#pricelineID' + pricelineID).val()),
+        "description": $('#pricelineDescription' + pricelineID).val(),
+        "price": parseFloat($('#pricelinePrice' + pricelineID).val()),
+        "position": parseFloat($('#pricelinePosition' + pricelineID).val()),
+        "itemID": $('#pricelineItemID' + pricelineID).val()
+    };
+
+    // request method is either POST (create) or PUT (edit)
+    let methodString, operationString;
+    if (create) {
+        methodString = "POST";
+        operationString = "created";
+    }
+    else {
+        methodString = "PUT";
+        operationString = "updated";
+    }
+    console.log(JSON.stringify(priceline));
+
+    // ajax call
+    $.ajax({
+        method: methodString,               // either POST or PUT
+        accepts: 'application/json',
+        url: URL + "priceline",                  // url is api/priceline
+        contentType: 'application/json',    // type of data being sent
+        data: JSON.stringify(priceline),         // actual data being sent, use JSON library to convert the priceline object to JSON
+        error: function (jqXHR, textStatus, errorThrown) {
+            alert('Error: Priceline could not be ' + operationString);
+        },
+        success: function (result) {
+            alert('Priceline successfully ' + operationString);
+
+            // reload this item and its pricelines
+            loadItem(priceline.itemID);
+        }
+    });
+}
+
+function deletePriceline(id, itemID) {
+    // called by a delete button
+    // first call changes the button's text to "Confirm Delete?"
+    // second call sends an ajax request to delete that entry, then refreshes the item listing (id given by 2nd parameter)
+
+    // the confirm delete text
+    let confirmDeleteText = "Confirm Delete?";
+
+    // id of current button
+    let buttonID = "#deletePriceline" + id;
+
+    if ($(buttonID).text() != confirmDeleteText) {
+        // first call changes the text of the calling button
+        $(buttonID).text(confirmDeleteText)
+        console.log($(this).text());
+    }
+    else {
+        // second call sends the ajax delete request
+
+        // JSON to be sent, only requires the id
+        let jsonString = '{ "id": ' + id + ' }';
+
+        $.ajax({
+            method: "DELETE",                     // method is DELETE
+            accepts: 'application/json',
+            url: URL + "priceline",                  // url is api/priceline
+            contentType: 'application/json',    // type of data being sent
+            data: jsonString,                   // actual data being sent
+            success: function (result) {
+                // Change button text
+                $(buttonID).text("Successfully Deleted");
+
+                // Remove this button's onclick event
+                $(buttonID).prop('onclick', null).off('click');
+                
+                // reload the item and its pricelines
+                loadItem(itemID);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 // Change button text to show delete failure
