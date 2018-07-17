@@ -8,14 +8,6 @@ GO
 USE kaibaredux;
 GO
 
-DROP TABLE t_priceline;
-GO
-DROP TABLE t_item;
-GO
-DROP TABLE t_section;
-GO
-DROP TABLE t_menu;
-GO
 
 CREATE TABLE dbo.t_menu  
    (menuID int IDENTITY(1,1) PRIMARY KEY NOT NULL ,  
