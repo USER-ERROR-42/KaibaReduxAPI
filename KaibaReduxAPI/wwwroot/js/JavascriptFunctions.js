@@ -3,10 +3,10 @@
 // This url should point to API 
 const URL = "api/";
 
-// The id of the div in which to put the <p> elements describing the menu's contents
+// The id of the div in which to put the elements describing all the menus
 const MENUS_LIST_DIV_ID = "#menuList";
 
-// The id of the div in which to put the <p> elements describing the menu's contents
+// The id of the div in which to put the elements describing the selected menu's contents
 const MENU_CONTENTS_DIV_ID = "#menuContents";
 
 // The id of the div on the editItem page that contains the pricelines
@@ -789,8 +789,8 @@ function deletePriceline(id, itemID) {
 
 function isPositiveNumber(input, fieldName) {
     // takes an input and checks whether it's a positive number or not
-    // second param is the name of the field being checked (using in error message)
-    // returns empty string if true, an error string if false
+    // second param is the name of the field being checked (used in error message)
+    // returns empty string if true, an error message string if false
 
     let result = "";
 

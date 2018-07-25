@@ -37,7 +37,7 @@ namespace KaibaReduxAPI.Controllers
         [HttpPost] // Route = /api/priceline
         public IActionResult CreatePriceline(Priceline priceline)
         // POST request that takes JSON from the request body and builds a Priceline object
-        // returns NoContent (204) if successful, returns server error (500)
+        // returns Content Created (201) if successful, returns server error (500) if unsuccessful
         {
             DbAccessManagement DAM = new DbAccessManagement();
             bool result = DAM.InsertPriceline(priceline);
@@ -56,7 +56,7 @@ namespace KaibaReduxAPI.Controllers
         public IActionResult DeletePriceline(Priceline priceline)
         // takes a Priceline object from the JSON body and deletes that record
         // it only requires the id field, and ignores everything else
-        // returns NotFound (404) if unsuccessful, returns NoContent (201) if successful
+        // returns NotFound (404) if unsuccessful, returns NoContent (204) if successful
         {
             DbAccessManagement DAM = new DbAccessManagement();
             bool result = DAM.DeletePriceline(priceline.Id);

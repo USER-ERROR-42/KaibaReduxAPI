@@ -1,8 +1,4 @@
-IF  NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'kaibaredux')
-    BEGIN
-        CREATE DATABASE kaibaredux
-    END;
-GO
+
 
 USE kaibaredux;
 GO

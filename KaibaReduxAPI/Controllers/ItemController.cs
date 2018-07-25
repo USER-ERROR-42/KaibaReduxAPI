@@ -37,7 +37,7 @@ namespace KaibaReduxAPI.Controllers
         [HttpPost] // Route = /api/item
         public IActionResult CreateItem(Item item)
         // POST request that takes JSON from the request body and builds a Item object
-        // returns NoContent (204) if successful, returns server error (500)
+        // returns Content Created (201) if successful, returns server error (500) if unsuccessful
         {
             DbAccessManagement DAM = new DbAccessManagement();
             bool result = DAM.InsertItem(item);
@@ -56,7 +56,7 @@ namespace KaibaReduxAPI.Controllers
         public IActionResult DeleteItem(Item item)
         // takes a Item object from the JSON body and deletes that record
         // it only requires the id field, and ignores everything else
-        // returns NotFound (404) if unsuccessful, returns NoContent (201) if successful
+        // returns NotFound (404) if unsuccessful, returns NoContent (204) if successful
         {
             DbAccessManagement DAM = new DbAccessManagement();
             bool result = DAM.DeleteItem(item.Id);
